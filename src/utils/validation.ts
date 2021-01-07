@@ -1,21 +1,24 @@
 import * as joi from "@hapi/joi"
 
-const registerSchema = {
+const registerSchema = joi.object({
     name: joi.string().min(6).required(),
     email: joi.string().min(6).required().email(),
     password: joi.string().min(6).required()
-}
+})
 
-const loginSchema = {
+const loginSchema = joi.object({
     email: joi.string().min(6).required().email(),
     password: joi.string().min(6).required()
-}
+})
 
+// Functions
 
+//
 export function registerValidation(body: any) {
-    return joi.validate(body, registerSchema)
+    return registerSchema.validate(body)
 }
 
+//
 export function loginValidation(body: any) {
-    return joi.validate(body, loginSchema)
+    return loginSchema.validate(body)
 }
