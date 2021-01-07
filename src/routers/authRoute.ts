@@ -1,7 +1,7 @@
 import * as express from "express"
 import User from "../models/user"
 import joi from "@hapi/joi"
-import bcrypt from "bcrypt"
+import * as bcrypt from "bcrypt"
 import * as jwt from "jsonwebtoken"
 import {registerValidation, loginValidation} from "../utils/validation";
 
@@ -14,7 +14,7 @@ router.post("/register", async (req, res) => {
     const emailExist = await User.findOne({email: req.body.email})
     if (emailExist) return res.status(400).send("Email already exists")
 
-    const salt = await bcrypt.gentSalt(10)
+    const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(req.body.password, salt)
 
     // res.send("Register")
