@@ -1,14 +1,16 @@
 import * as express from "express"
 import * as jwt from "jsonwebtoken"
 import * as mongoose from "mongoose"
-import * as dotenv from "dotenv";
+import * as dotenv from "dotenv"
+
 // Routes
-import exampleRoute from "./routers/example"
+import exampleRoute from "./routers/authRoute"
+
 dotenv.config()
 // dotenv.config({path: __dirname + '/.env'});
 
 mongoose.connect(process.env.MONGODB_ACCESS_TOKEN,
-    {useNewUrlParser: true, useUnifiedTopology: true },
+    {useNewUrlParser: true, useUnifiedTopology: true},
     () => console.log("connected to DB"))
 
 
@@ -16,7 +18,7 @@ const app = express()
 app.use(express.json())
 app.use("/api/user", exampleRoute)
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 4000
 const posts = [{
     username: "Kyle",
     title: "Post 1"
@@ -42,6 +44,7 @@ function authenticateToken(req, res, next) {
 function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "15s"})
 }
+
 function generateRefreshToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "15s"})
 }
@@ -62,4 +65,4 @@ function generateRefreshToken(user) {
 //     res.json(posts.filter(post => post.username == req.body.user.name))
 // })
 
-app.listen(3000)
+app.listen(PORT)
