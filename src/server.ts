@@ -76,6 +76,32 @@ type RedditScrapeEntry = {
 
 let RedditScrapeTracker: RedditScrapeEntry[] = []
 
+app.get("/api/v1/reddit/status/:board", (req, res) => {
+    const BOARD_TARGET = req.params.board
+    const doesBoardExist = RedditScrapeTracker.some(obj =>
+        obj.board == BOARD_TARGET)
+
+    if (!doesBoardExist) {
+        res.sendStatus(404)
+    } else {
+        const boardObject = RedditScrapeTracker.find(obj => obj.board == BOARD_TARGET)
+        switch (boardObject.status) {
+            case "success":
+                res.sendStatus(200);
+                break;
+            case "failed":
+                res.sendStatus(200);
+                break;
+            case "running":
+                res.sendStatus(102);
+                break;
+            default:
+                res.sendStatus(400);
+                break;
+        }
+    }
+})
+
 app.put("/api/v1/reddit/:board", (req, res) => {
     const REGEX_PATTERN_REDDIT = "https://www.reddit.com/r/OneTrueTohsaka/"
     const DOWNLOAD_LOCATION_REDDIT = path.join(process.env.DOWNLOAD_FOLDER || "/srv/Downloads/", "Rips/Reddit")
@@ -107,26 +133,34 @@ app.put("/api/v1/reddit/:board", (req, res) => {
     })
     exec(command, (err, stdout, stderr) => {
         if (err) {
-            console.log(err)
+            console.log(`err: Request Reddit/${BOARD_TARGET} failed`)
             RedditScrapeTracker.push({
                 board: BOARD_TARGET,
                 status: "failed",
                 timestamp: moment().format()
             })
         } else if (stderr) {
-            console.log(stderr)
+            console.log(`stderr: Request Reddit/${BOARD_TARGET} failed`)
             RedditScrapeTracker.push({
                 board: BOARD_TARGET,
                 status: "failed",
                 timestamp: moment().format()
             })
         } else {
-            console.log(stdout)
-            RedditScrapeTracker.push({
-                board: BOARD_TARGET,
-                status: "success",
-                timestamp: moment().format()
-            })
+            console.log(`success: Request Reddit/${BOARD_TARGET} succeeded`)
+            const idx = RedditScrapeTracker.findIndex(obj => obj.board == BOARD_TARGET)
+            if (idx == -1) {
+                RedditScrapeTracker.push({
+                    board: BOARD_TARGET,
+                    status: "success",
+                    timestamp: moment().format()
+                })
+            } else {
+                RedditScrapeTracker[idx] = {
+                    ...RedditScrapeTracker[idx],
+                    status: "success"
+                }
+            }
         }
     })
     res.sendStatus(200)
