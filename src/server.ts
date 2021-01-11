@@ -11,6 +11,7 @@ import * as chokidar from "chokidar"
 import exampleRoute from "./routers/authRoute"
 import logger from "./utils/logger"
 import DateTimeFormat = Intl.DateTimeFormat;
+import * as path from "path";
 
 dotenv.config()
 // dotenv.config({path: __dirname + '/.env'});
@@ -77,8 +78,8 @@ let RedditScrapeTracker: RedditScrapeEntry[] = []
 
 app.put("/api/v1/reddit/:board", (req, res) => {
     const REGEX_PATTERN_REDDIT = "https://www.reddit.com/r/OneTrueTohsaka/"
-    const DOWNLOAD_LOCATION_REDDIT = "/home/suvam/Downloads/Rips/Reddit"
-    const COMMAND_BASE = "java -jar /home/suvam/Downloads/ripme.jar"
+    const DOWNLOAD_LOCATION_REDDIT = path.join(process.env.DOWNLOAD_FOLDER || "/srv/Downloads/", "Rips/Reddit")
+    const COMMAND_BASE = `java -jar ${process.env.RIPME_LOCATION || "/opt/ripme.jar"}`
     const BOARD_TARGET = req.params.board
 
     // const watcher = chokidar.watch("/home/suvam/", {persistent: true})
