@@ -133,6 +133,7 @@ app.put("/api/v1/reddit/:board", (req, res) => {
     })
     exec(command, (err, stdout, stderr) => {
         if (err) {
+            console.log(err)
             console.log(`err: Request Reddit/${BOARD_TARGET} failed`)
             RedditScrapeTracker.push({
                 board: BOARD_TARGET,
