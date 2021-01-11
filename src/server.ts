@@ -2,9 +2,15 @@ import * as express from "express"
 import * as jwt from "jsonwebtoken"
 import * as mongoose from "mongoose"
 import * as dotenv from "dotenv"
+import * as moment from "moment"
+import * as socketio from "socket.io"
+import {exec} from "child_process"
+import * as chokidar from "chokidar"
 
 // Routes
 import exampleRoute from "./routers/authRoute"
+import logger from "./utils/logger"
+import DateTimeFormat = Intl.DateTimeFormat;
 
 dotenv.config()
 // dotenv.config({path: __dirname + '/.env'});
@@ -15,6 +21,14 @@ mongoose.connect(process.env.MONGODB_ACCESS_TOKEN,
 
 
 const app = express()
+let http = require("http").Server(app)
+let io = require("socket.io")(http)
+
+io.on("connection", (req, res) => {
+    console.log("a user connected")
+})
+
+app.use(logger)
 app.use(express.json())
 app.use("/api/user", exampleRoute)
 
@@ -49,7 +63,73 @@ function generateRefreshToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: "15s"})
 }
 
+app.get("/api/request/:id", (req, res) => {
+    res.send(req.params.id)
+})
 
+type RedditScrapeEntry = {
+    board: string,
+    status: "success" | "failed" | "running"
+    timestamp: string
+}
+
+let RedditScrapeTracker: RedditScrapeEntry[] = []
+
+app.put("/api/v1/reddit/:board", (req, res) => {
+    const REGEX_PATTERN_REDDIT = "https://www.reddit.com/r/OneTrueTohsaka/"
+    const DOWNLOAD_LOCATION_REDDIT = "/home/suvam/Downloads/Rips/Reddit"
+    const COMMAND_BASE = "java -jar /home/suvam/Downloads/ripme.jar"
+    const BOARD_TARGET = req.params.board
+
+    // const watcher = chokidar.watch("/home/suvam/", {persistent: true})
+    // let numFiles = 0;
+    // watcher.on("add", (path) => {
+    //     console.log(`File ${path} changed... Number of files: ${numFiles++}`)
+    // })
+    const command = `${COMMAND_BASE} -u https://www.reddit.com/r/${BOARD_TARGET}/ -l ${DOWNLOAD_LOCATION_REDDIT}`
+
+
+    const isBoardBeingScraped = RedditScrapeTracker.some(obj =>
+        obj.board == BOARD_TARGET && obj.status == "running")
+
+    // Return conflict if the associated task is already running
+    if (isBoardBeingScraped) {
+        res.sendStatus(409)
+        return
+    }
+
+    // Start a background process to scrape content, if no conflict found
+    RedditScrapeTracker.push({
+        board: BOARD_TARGET,
+        status: "running",
+        timestamp: moment().format()
+    })
+    exec(command, (err, stdout, stderr) => {
+        if (err) {
+            console.log(err)
+            RedditScrapeTracker.push({
+                board: BOARD_TARGET,
+                status: "failed",
+                timestamp: moment().format()
+            })
+        } else if (stderr) {
+            console.log(stderr)
+            RedditScrapeTracker.push({
+                board: BOARD_TARGET,
+                status: "failed",
+                timestamp: moment().format()
+            })
+        } else {
+            console.log(stdout)
+            RedditScrapeTracker.push({
+                board: BOARD_TARGET,
+                status: "success",
+                timestamp: moment().format()
+            })
+        }
+    })
+    res.sendStatus(200)
+})
 // app.get("/login", (req, res) => {
 //     // Authenticate User
 //
