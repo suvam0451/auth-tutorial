@@ -10,16 +10,25 @@ import * as chokidar from "chokidar"
 // Routes
 import exampleRoute from "./routers/authRoute"
 import logger from "./utils/logger"
+import bookRouter from "./routers/books"
 import DateTimeFormat = Intl.DateTimeFormat;
 import * as path from "path";
 
 dotenv.config()
 // dotenv.config({path: __dirname + '/.env'});
 
-mongoose.connect(process.env.MONGODB_ACCESS_TOKEN,
-    {useNewUrlParser: true, useUnifiedTopology: true},
-    () => console.log("connected to DB"))
+// mongoose.connect(process.env.MONGODB_ACCESS_TOKEN,
+//     {useNewUrlParser: true, useUnifiedTopology: true},
+//     () => console.log("connected to DB"))
 
+mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true},
+    (err) => {
+    if (err) {
+        console.log("Error connecting to DB")
+    } else {
+        console.log("Connected to DB !")
+    }
+})
 
 const app = express()
 let http = require("http").Server(app)
@@ -32,6 +41,7 @@ io.on("connection", (req, res) => {
 app.use(logger)
 app.use(express.json())
 app.use("/api/user", exampleRoute)
+app.use("/api/books", bookRouter)
 
 const PORT = process.env.PORT || 4000
 const posts = [{

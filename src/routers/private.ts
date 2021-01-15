@@ -8,6 +8,6 @@ import {registerValidation, loginValidation} from "../utils/validation";
 const router = express.Router()
 
 router.get("/", (req, res)=> {
-    res.send(req.user)
+    // res.send(req.user)
     // res.json({posts: {title: "My first post"}})
 })
