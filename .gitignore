@@ -4,4 +4,4 @@ yarn.lock
 .idea/**
 *.log
 /*.png
-/*.jpeg
+*.jpeg
