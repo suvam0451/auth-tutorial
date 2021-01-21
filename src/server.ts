@@ -3,15 +3,19 @@ import * as jwt from "jsonwebtoken"
 import * as mongoose from "mongoose"
 import * as dotenv from "dotenv"
 import * as moment from "moment"
+import * as upload from "express-fileupload"
 import * as socketio from "socket.io"
 import {exec} from "child_process"
 import * as chokidar from "chokidar"
+import * as cors from "cors"
 
 // Routes
 import exampleRoute from "./routers/authRoute"
 import logger from "./utils/logger"
 import bookRouter from "./routers/books"
 import DateTimeFormat = Intl.DateTimeFormat;
+import uploadTutorialRoute from "./routers/uploadTutorialRoute"
+
 import * as path from "path";
 
 dotenv.config()
@@ -23,12 +27,12 @@ dotenv.config()
 
 mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true},
     (err) => {
-    if (err) {
-        console.log("Error connecting to DB")
-    } else {
-        console.log("Connected to DB !")
-    }
-})
+        if (err) {
+            console.log("Error connecting to DB")
+        } else {
+            console.log("Connected to DB !")
+        }
+    })
 
 const app = express()
 let http = require("http").Server(app)
@@ -42,6 +46,7 @@ app.use(logger)
 app.use(express.json())
 app.use("/api/user", exampleRoute)
 app.use("/api/books", bookRouter)
+app.use("/api/upload", uploadTutorialRoute)
 
 const PORT = process.env.PORT || 4000
 const posts = [{
@@ -187,8 +192,9 @@ app.put("/api/v1/reddit/:board", (req, res) => {
 //     res.json({accessToken: accessTokens})
 // })
 
+
 // app.get("/posts", (req, res) => {
 //     res.json(posts.filter(post => post.username == req.body.user.name))
 // })
 
-app.listen(PORT)
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
