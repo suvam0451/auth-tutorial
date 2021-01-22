@@ -10,9 +10,6 @@ import {RequestHandler} from "express";
 const router = express.Router()
 
 router.post("/", cors(), fileUpload(), (req, res, next) => {
-    console.log("Request queued !!!")
-    console.log(req)
-    console.log(req.files)
     if (req.files === null) {
         return res.status(400).json({msg: "No file found"})
     }
